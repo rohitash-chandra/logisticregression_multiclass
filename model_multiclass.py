@@ -107,7 +107,7 @@ class logistic_regression:
 
 			pred_binary = np.where(prediction > (1 - tolerance), 1, 0)
 
-			print(s, actual, prediction, pred_binary, sum_sqer, ' s, actual, prediction, sum_sqer')
+			print(s, actual, prediction, pred_binary, sum_sqer, ' s, actual, prediction, sum_sqerr')
 
  
 
