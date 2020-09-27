@@ -46,9 +46,21 @@ class logistic_regression:
 		return y
  
 
-	def predict(self, x_vec ): 
+	def predict(self, x_vec ): # implementation using dot product
 		z_vec = x_vec.dot(self.w) - self.b 
 		output = self.activation_func(z_vec) # Output  
+		return output
+
+	def predict_(self, x_vec ):  # implementation using for loops
+		weightsum = 0
+		output = np.zeros(self.num_outputs)
+
+		for y in range(0, self.num_outputs):
+			for x in range(0, self.num_features): 
+				weightsum   +=    x_vec[x] * self.w[x,y] 
+			output[y] = self.activation_func(weightsum- self.b[y])
+			weightsum  = 0 
+
 		return output
 	
 	def gradient(self, x_vec, output, actual):   
@@ -58,11 +70,23 @@ class logistic_regression:
 			out_delta =   (output - actual) 
 		return out_delta
 
-	def update(self, x_vec, output, actual):    
+	def update(self, x_vec, output, actual):   # implementation using dot product 
 
-		self.w+= x_vec.T.dot(self.out_delta) * self.learn_rate 
-		#self.w+= self.learn_rate *( x_vec.T *  self.out_delta)
+		x_vec = np.reshape(x_vec, (-1, 1))  # reshapes 1D array as Nx1D array for numpy dot operation. 
+		out_delta= np.reshape(self.out_delta, (-1, 1))
+
+		self.w+= x_vec.dot(out_delta.T) * self.learn_rate
 		self.b+=  (1 * self.learn_rate * self.out_delta)
+
+	def update_(self, x_vec, output, actual): # implementation using for loops 
+
+		for x in range(0, self.num_features):
+			for y in range(0, self.num_outputs):
+				self.w[x,y] += self.learn_rate * self.out_delta[y] * x_vec[x] 
+
+		for y in range(0, self.num_outputs):
+			self.b += -1 * self.learn_rate * self.out_delta[y]
+
  
 
 	def squared_error(self, prediction, actual):
@@ -80,9 +104,14 @@ class logistic_regression:
 			actual  = self.train_data[s,self.num_features:]  
 			prediction = self.predict(input_instance) 
 			sum_sqer += self.squared_error(prediction, actual)
-			print(s, actual, prediction, sum_sqer, ' s, actual, prediction, sum_sqer')
 
-			if(np.isclose(prediction, actual, atol=tolerance).any()):
+			pred_binary = np.where(prediction > (1 - tolerance), 1, 0)
+
+			print(s, actual, prediction, pred_binary, sum_sqer, ' s, actual, prediction, sum_sqer')
+
+ 
+
+			if( np.sum(actual-pred_binary)==0):
 				class_perf =  class_perf +1  
 
 		rmse = np.sqrt(sum_sqer/num_instances)
@@ -109,7 +138,7 @@ class logistic_regression:
 					sum_sqer += self.squared_error(prediction, actual)
 					self.out_delta = self.gradient( input_instance, prediction, actual)    # major difference when compared to GD
 					#print(input_instance, prediction, actual, s, sum_sqer)
-					self.update(input_instance, prediction, actual)
+					self.update_(input_instance, prediction, actual)
 
 			
 				print(epoch, sum_sqer, self.w, self.b)
@@ -129,12 +158,12 @@ class logistic_regression:
 				for s in range(0, self.num_train): 
 					input_instance  =  self.train_data[s,0:self.num_features]  
 					actual  = self.train_data[s,self.num_features:]   
-					prediction = self.predict(input_instance) 
+					prediction = self.predict_(input_instance) 
 					sum_sqer += self.squared_error(prediction, actual) 
 					self.out_delta+= self.gradient( input_instance, prediction, actual)    # this is major difference when compared with SGD
 
 					#print(input_instance, prediction, actual, s, sum_sqer)
-				self.update(input_instance, prediction, actual)
+				self.update_(input_instance, prediction, actual)
 
 			
 				print(epoch, sum_sqer, self.w, self.b)
@@ -154,7 +183,7 @@ class logistic_regression:
 
 
  
-dataset = [[2.7810836,2.550537003,0],
+dataset = [[2.7810836,2.550537003,0], # sample binary classification data
 	[1.465489372,2.362125076,0],
 	[3.396561688,4.400293529,0],
 	[1.38807019,1.850220317,0],
@@ -170,7 +199,7 @@ train_data = np.asarray(dataset) # convert list data to numpy
 test_data = train_data
 
 
-dataset_onehot = [[2.7810836,2.550537003,0, 1],
+dataset_onehot = [[2.7810836,2.550537003,0, 1], # binary classification with one-hot encoding 
 	[1.465489372,2.362125076,0, 1],
 	[3.396561688,4.400293529,0, 1],
 	[1.38807019,1.850220317,0, 1],
@@ -192,23 +221,23 @@ num_epocs = 20
 print(train_data)
  
 
-#lreg = logistic_regression(num_epocs, train_data, test_data, num_features, learn_rate)
-#(train_perc, test_perc, rmse_train, rmse_test) = lreg.SGD()
-#(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
+lreg = logistic_regression(num_epocs, train_data, test_data, num_features, learn_rate)
+(train_perc, test_perc, rmse_train, rmse_test) = lreg.SGD()
+(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
 
 #-------------------------------
 
 lreg = logistic_regression(num_epocs, train_data_onehot, test_data_onehot, num_features, learn_rate)
 (train_perc, test_perc, rmse_train, rmse_test) = lreg.SGD()
-#(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
+(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
 
  
  
 # Iris data (3 classes)
 #https://archive.ics.uci.edu/ml/machine-learning-databases/iris/ 
-# using first 5 samples from each class
+# using first 5 samples from each class with one-hot encoding 
 
-iris_train = [[5.1,3.5,1.4,0.2, 1, 0, 0],
+iris_train = [[5.1,3.5,1.4,0.2, 1, 0, 0], 
 			[4.9,3.0,1.4,0.2, 1, 0, 0],
 			[4.7,3.2,1.3,0.2,1, 0, 0],
 			[4.6,3.1,1.5,0.2, 1, 0, 0],
@@ -231,12 +260,12 @@ test_data = train_data  # assume test is same as train (you can change by readin
 
 print(train_data, ' iris data')
 
-learn_rate = 0.3
+learn_rate = 0.1
 num_features = 4
-num_epocs = 200
+num_epocs = 50
 
  
 
 lreg = logistic_regression(num_epocs, train_data, test_data, num_features, learn_rate)
 (train_perc, test_perc, rmse_train, rmse_test) = lreg.SGD()
-(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
+#(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
