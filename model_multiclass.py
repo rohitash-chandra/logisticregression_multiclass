@@ -147,14 +147,16 @@ class logistic_regression:
 					sum_sqer += self.squared_error(prediction, actual)
 					self.out_delta = self.gradient( input_instance, prediction, actual)    # major difference when compared to GD
 					#print(input_instance, prediction, actual, s, sum_sqer)
-					self.update_(input_instance, prediction, actual)
+					self.update(input_instance, prediction, actual)
 
 			
 				#print(epoch, sum_sqer, self.w, self.b)
 				epoch=epoch+1  
 
 			rmse_train, train_perc = self.test_model(self.train_data, 0.3) 
-			rmse_test, test_perc = self.test_model(self.test_data, 0.3)
+			rmse_test =0
+			test_perc =0
+			#rmse_test, test_perc = self.test_model(self.test_data, 0.3)
   
 			return (train_perc, test_perc, rmse_train, rmse_test) 
 				
@@ -172,14 +174,16 @@ class logistic_regression:
 					self.out_delta+= self.gradient( input_instance, prediction, actual)    # this is major difference when compared with SGD
 
 					#print(input_instance, prediction, actual, s, sum_sqer)
-				self.update_(input_instance, prediction, actual)
+				self.update(input_instance, prediction, actual)
 
 			
 				#print(epoch, sum_sqer, self.w, self.b)
 				epoch=epoch+1  
 
 			rmse_train, train_perc = self.test_model(self.train_data, 0.3) 
-			rmse_test, test_perc = self.test_model(self.test_data, 0.3)
+			rmse_test =0
+			test_perc =0
+			#rmse_test, test_perc = self.test_model(self.test_data, 0.3)
   
 			return (train_perc, test_perc, rmse_train, rmse_test) 
 				
@@ -238,9 +242,11 @@ def main():
 
 	#-------------------------------
 
-	lreg = logistic_regression(num_epocs, train_data_onehot, test_data_onehot, num_features, learn_rate)
-	(train_perc, test_perc, rmse_train, rmse_test) = lreg.SGD()
-	(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
+	lreg_sgd = logistic_regression(num_epocs, train_data_onehot, test_data_onehot, num_features, learn_rate)
+	(train_perc, test_perc, rmse_train, rmse_test) = lreg_sgd.SGD()
+
+	lreg_gd = logistic_regression(num_epocs, train_data_onehot, test_data_onehot, num_features, learn_rate)
+	(train_perc, test_perc, rmse_train, rmse_test) = lreg_gd.GD() 
 
 	 
 	 
@@ -277,9 +283,11 @@ def main():
 
 	 
 
-	lreg = logistic_regression(num_epocs, train_data, test_data, num_features, learn_rate)
-	(train_perc, test_perc, rmse_train, rmse_test) = lreg.SGD()
-	(train_perc, test_perc, rmse_train, rmse_test) = lreg.GD() 
+	lreg_sgd = logistic_regression(num_epocs, train_data, test_data, num_features, learn_rate)
+	(train_perc, test_perc, rmse_train, rmse_test) = lreg_sgd.SGD()
+
+	lreg_gd = logistic_regression(num_epocs, train_data, test_data, num_features, learn_rate)
+	(train_perc, test_perc, rmse_train, rmse_test) = lreg_gd.GD() 
 
 
 if __name__ == "__main__": main()
